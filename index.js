@@ -16,7 +16,13 @@ let lstAnimal = [];
 let food = [];
 let poison = [];
 
+let isStop = false;
 
+const title = document.querySelector(".title");
+const speedRange = document.querySelector(".speedRange");
+const pause = document.querySelector(".pause");
+const pauseElement = document.querySelector(".fas");
+const forceRange = document.querySelector(".forceRange");
 const foodRange = document.querySelector(".foodRange");
 const foodBonusRange = document.querySelector(".foodBonusRange");
 const poisonRange = document.querySelector(".poisonRange");
@@ -25,6 +31,8 @@ const reprodRange = document.querySelector(".reprodRange");
 const debugCheck = document.querySelector(".debugCheck");
 
 
+let speedNbr = speedRange.value;
+let forceNbr = forceRange.value;
 let foodNbr = foodRange.value;
 let foodBonus = foodBonusRange.value;
 let poisonNbr = poisonRange.value;
@@ -32,6 +40,11 @@ let poisonMalus = poisonMalusRange.value;
 let reprodNbr = reprodRange.value;
 let debug = debugCheck.checked;
 
+
+const labelSpeed = document.querySelector(".range-details-speed");
+labelSpeed.innerText = speedNbr;
+const labelForce = document.querySelector(".range-details-force");
+labelForce.innerText = forceNbr;
 const labelFood = document.querySelector(".range-details-food");
 labelFood.innerText = foodNbr;
 const labelFoodBonus = document.querySelector(".range-details-food-bonus");
@@ -43,6 +56,30 @@ labelPoisonMalus.innerText = poisonMalus;
 const labelReprod = document.querySelector(".range-details-reprod");
 labelReprod.innerText = reprodNbr;
 let output = document.querySelector(".console");
+
+pause.addEventListener('click', function() {
+    if (isStop) {
+        isStop = false;
+        pauseElement.classList.toggle('fa-pause')
+        pauseElement.classList.toggle('fa-play')
+        draw();
+    } else {
+        isStop = true;
+        pauseElement.classList.toggle('fa-play')
+        pauseElement.classList.toggle('fa-pause')
+    }
+    console.log(isStop)
+})
+
+speedRange.addEventListener('change', function() {
+    labelSpeed.innerText = speedRange.value;
+    speedNbr = speedRange.value 
+})
+
+forceRange.addEventListener('change', function() {
+    labelForce.innerText = forceRange.value;
+    forceNbr = forceRange.value 
+})
 
 foodRange.addEventListener('change', function() {
     labelFood.innerText = foodRange.value;
@@ -104,7 +141,7 @@ function createPoison(nbr, x, y) {
 
 function createAnimal(nbr) {
     for (var i = 0; i < nbr; i++) {
-        lstAnimal.push(new Animal(getRnd(0, canvas.width), getRnd(0, canvas.height)));
+        lstAnimal.push(new Animal(getRnd(0, canvas.width), getRnd(0, canvas.height), speedNbr, forceNbr));
     }
 }
 
@@ -116,7 +153,7 @@ function add(e) {
     let y = e.clientY - rect.top;
     if (e.button == 0) {
         console.log("clique gauche: " + x, y)
-        lstAnimal.push(new Animal(x, y));
+        lstAnimal.push(new Animal(x, y, speedNbr, forceNbr));
     } else if (e.button == 1) {
         poison.push(new Poison(x, y));
     } else if (e.button == 2) {
@@ -150,8 +187,13 @@ function setup() {
 
 var last = 0;
 function draw(now) {
-    let myReq = requestAnimationFrame(draw);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let myReq;
+    if (isStop) {
+        cancelAnimationFrame(myReq);
+    } else {
+        myReq = requestAnimationFrame(draw);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
 
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -185,6 +227,8 @@ function draw(now) {
         let animal = lstAnimal[i];
         animal.behaviors(food, poison, foodBonus, poisonMalus);
         animal.bounceOffWalls();
+        animal.updateMaxSpeed(speedNbr);
+        animal.updateMaxForce(forceNbr);
         animal.update();
         animal.draw(debug);
         

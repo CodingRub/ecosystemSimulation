@@ -13,12 +13,12 @@ function getRndInteger(min, max) {
 }
 
 export class Animal {
-    constructor(x, y, dna) {
+    constructor(x, y, maxspeed, maxforce, dna) {
         this.pos = new Vector(x, y);
         this.vel = new Vector(0, -2);
         this.acceleration = new Vector(0, 0);
-        this.maxSpeed = 2;
-        this.maxForce = 0.5;
+        this.maxSpeed = maxspeed;
+        this.maxForce = maxforce;
         this.radius = 15;
         this.health = 0;
         this.dna = [];
@@ -41,6 +41,10 @@ export class Animal {
 
     updateMaxSpeed(nbr) {
         this.maxSpeed = nbr;
+    }
+
+    updateMaxForce(nbr) {
+        this.maxForce = nbr;
     }
 
     draw(debug) {
@@ -109,7 +113,7 @@ export class Animal {
 
     born(reproductionRate) {
         if (this.health <= 0.5 && Math.random(1) < reproductionRate) {
-            return new Animal(this.pos.x, this.pos.y, this.dna);
+            return new Animal(this.pos.x, this.pos.y, this.maxSpeed, this.maxForce, this.dna);
         } else {
             return null;
         }
