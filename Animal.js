@@ -39,6 +39,10 @@ export class Animal {
         }
     }
 
+    updateMaxSpeed(nbr) {
+        this.maxSpeed = nbr;
+    }
+
     draw() {
         ctx.beginPath();
         ctx.fillStyle = 'hsl(' + (1 - this.health) * 120 + ',100%,50%)'
@@ -63,17 +67,17 @@ export class Animal {
         return (Math.pow(other.pos.x - this.pos.x, 2) + Math.pow(other.pos.y - this.pos.y, 2));
     }
 
-    born() {
-        if (this.health <= 0.5 && Math.random(1) < 0.001) {
+    born(reproductionRate) {
+        if (this.health <= 0.5 && Math.random(1) < reproductionRate) {
             return new Animal(this.pos.x, this.pos.y, this.dna);
         } else {
             return null;
         }
     }
 
-    behaviors(food, poison) {
-        var foodSteer = this.eat(food, 0.3, this.dna[2]);
-        var poisonSteer = this.eat(poison, -0.5, this.dna[3]);
+    behaviors(food, poison, bonus, malus) {
+        var foodSteer = this.eat(food, bonus, this.dna[2]);
+        var poisonSteer = this.eat(poison, malus, this.dna[3]);
 
         foodSteer = foodSteer.multiply(this.dna[0]);
         poisonSteer = poisonSteer.multiply(this.dna[1]);
