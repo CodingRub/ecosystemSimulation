@@ -43,11 +43,51 @@ export class Animal {
         this.maxSpeed = nbr;
     }
 
-    draw() {
+    draw(debug) {
+
+        let dna_food_attract = this.dna[0]*20;
+        let dna_poison_attract = this.dna[1]*20;
+        let newVelFood = this.vel.normalize().multiply(dna_food_attract);
+        let newVelPoison = this.vel.normalize().multiply(dna_poison_attract);
+        let dna_food_percept = this.dna[2];
+        let dna_poison_percept = this.dna[3];
+
         ctx.beginPath();
         ctx.fillStyle = 'hsl(' + (1 - this.health) * 120 + ',100%,50%)'
         ctx.arc(this.pos.x, this.pos.y, this.radius, 0, 2 * Math.PI);
         ctx.fill();
+
+        if (debug) {
+            dna_food_percept = dna_food_percept<0? 0 : dna_food_percept;
+            dna_poison_percept = dna_poison_percept<0? 0 : dna_poison_percept;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(this.pos.x, this.pos.y);
+            ctx.lineTo(this.pos.x + newVelFood.x, this.pos.y + newVelFood.y);
+            ctx.strokeStyle = 'green';
+            ctx.stroke();
+    
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(this.pos.x, this.pos.y);
+            ctx.lineTo(this.pos.x + newVelPoison.x, this.pos.y + newVelPoison.y);
+            ctx.strokeStyle = 'red';
+            ctx.stroke();
+    
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.fillStyle = 'black'
+            ctx.arc(this.pos.x, this.pos.y, this.dna[2], 0, 2 * Math.PI);
+            ctx.strokeStyle = 'green';
+            ctx.stroke();
+    
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.fillStyle = 'black'
+            ctx.arc(this.pos.x, this.pos.y, this.dna[3], 0, 2 * Math.PI);
+            ctx.strokeStyle = 'red';
+            ctx.stroke();
+        }
     }
 
     bounceOffWalls() {
@@ -81,34 +121,6 @@ export class Animal {
 
         foodSteer = foodSteer.multiply(this.dna[0]);
         poisonSteer = poisonSteer.multiply(this.dna[1]);
-
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(this.pos.x, this.pos.y);
-        ctx.lineTo(this.pos.x + foodSteer.x * 30, this.pos.y + foodSteer.y * 30);
-        ctx.strokeStyle = 'green';
-        ctx.stroke();
-
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(this.pos.x, this.pos.y);
-        ctx.lineTo(this.pos.x + poisonSteer.x * 30, this.pos.y + poisonSteer.y * 30);
-        ctx.strokeStyle = 'red';
-        ctx.stroke();
-
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.fillStyle = 'black'
-        ctx.arc(this.pos.x, this.pos.y, this.dna[2], 0, 2 * Math.PI);
-        ctx.strokeStyle = 'green';
-        ctx.stroke();
-
-        ctx.lineWidth = 5;
-        ctx.beginPath();
-        ctx.fillStyle = 'black'
-        ctx.arc(this.pos.x, this.pos.y, this.dna[3], 0, 2 * Math.PI);
-        ctx.strokeStyle = 'red';
-        ctx.stroke();
 
         this.applyForce(foodSteer)
         this.applyForce(poisonSteer)

@@ -4,8 +4,10 @@ import { Food, Poison } from './Aliment.js';
 const canvas = document.querySelector('canvas');
 const ctx = canvas.getContext('2d');
 
-canvas.width = innerWidth;
-canvas.height = innerHeight;
+canvas.width = 1000;
+canvas.height = 450;
+canvas.style.width = canvas.width + 'px';
+canvas.style.height = canvas.height + 'px';
 
 ctx.fillStyle = "black";
 ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -20,6 +22,7 @@ const foodBonusRange = document.querySelector(".foodBonusRange");
 const poisonRange = document.querySelector(".poisonRange");
 const poisonMalusRange = document.querySelector(".poisonMalusRange");
 const reprodRange = document.querySelector(".reprodRange");
+const debugCheck = document.querySelector(".debugCheck");
 
 
 let foodNbr = foodRange.value;
@@ -27,6 +30,7 @@ let foodBonus = foodBonusRange.value;
 let poisonNbr = poisonRange.value;
 let poisonMalus = poisonMalusRange.value;
 let reprodNbr = reprodRange.value;
+let debug = debugCheck.checked;
 
 const labelFood = document.querySelector(".range-details-food");
 labelFood.innerText = foodNbr;
@@ -65,6 +69,11 @@ reprodRange.addEventListener('change', function() {
     reprodNbr = reprodRange.value;
 })
 
+debugCheck.addEventListener('change', function() {
+    debug = debugCheck.checked;
+})
+
+
 function getRnd(min, max) {
     return Math.random() * (max - min) + min;
 }
@@ -99,6 +108,23 @@ function createAnimal(nbr) {
     }
 }
 
+canvas.addEventListener("click", add, false);
+
+function add(e) {
+    let rect = canvas.getBoundingClientRect();
+    let x = e.clientX - rect.left;
+    let y = e.clientY - rect.top;
+    if (e.button == 0) {
+        console.log("clique gauche: " + x, y)
+        lstAnimal.push(new Animal(x, y));
+    } else if (e.button == 1) {
+        poison.push(new Poison(x, y));
+    } else if (e.button == 2) {
+        food.push(new Food(x, y));
+    }
+
+}
+
 function updateConsole() {
     let consoledata = '';
     for (var i = 0; i < lstAnimal.length; i++) {
@@ -117,8 +143,8 @@ function updateConsole() {
 
 function setup() {
     createAnimal(1);
-    createAliment(200)
-    createPoison(30);
+    createAliment(0)
+    createPoison(0);
     setInterval(updateConsole, 1000);
 }
 
@@ -126,9 +152,6 @@ var last = 0;
 function draw(now) {
     let myReq = requestAnimationFrame(draw);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (lstAnimal.length == 0) {
-        cancelAnimationFrame(myReq);
-    }
 
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -163,7 +186,7 @@ function draw(now) {
         animal.behaviors(food, poison, foodBonus, poisonMalus);
         animal.bounceOffWalls();
         animal.update();
-        animal.draw();
+        animal.draw(debug);
         
         let newAnimal = animal.born(reprodNbr);
 
