@@ -88,16 +88,13 @@ function draw(now) {
         poisonElt.draw();
     }
 
-    ctx.textAlign = "right";
-    ctx.font = "30px Comic Sans MS";
-    ctx.fillStyle = "red";
-    ctx.fillText("Time: "+Math.round(now/1000, 2) + "s",980, 30, 200);
     ctx.textAlign = "left";
-    ctx.font = "30px Comic Sans MS";
+    ctx.font = "25px Arial";
     ctx.fillStyle = "red";
-    ctx.fillText("Animal:"+lstAnimal.length, 10, 30, 200);
-    ctx.fillText("Food:"+food.length, 10, 70, 200);
-    ctx.fillText("Poison:"+poison.length, 10, 110, 200);
+    ctx.fillText("Animal:"+lstAnimal.length, 10, 30, 300);
+    ctx.fillText("Food:"+food.length, 10, 60, 300);
+    ctx.fillText("Poison:"+poison.length, 10, 90, 300);
+    ctx.fillText("Time: "+Math.round(now/1000, 2) + "s",10, 120, 300);
 
     for (var i = lstAnimal.length - 1; i >= 0; i--) {
         let animal = lstAnimal[i];
