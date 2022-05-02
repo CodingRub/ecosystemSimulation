@@ -156,7 +156,7 @@ function createPoison(nbr, x, y) {
 function createAnimal(nbr) {
     for (var i = 0; i < nbr; i++) {
         var animal = new Animal(getRnd(0, canvas.width), getRnd(0, canvas.height), speedNbr, forceNbr, false)
-        if (animal.isPredator) {
+        if (animal.dna[7]) {
             lstPredator.push(animal);
             lstAnimal.push(animal);
         } else {
@@ -195,16 +195,18 @@ function add(e) {
 function updateConsole() {
     let consoledata = '';
     for (var i = 0; i < lstAnimal.length; i++) {
-        var name = "Rabbit";
+        var name = "Animal";
         var attrPred = ' | proie_fear: ' + lstAnimal[i].dna[4].toFixed(2)
         var percepPred = ' | proie_percep: ' + lstAnimal[i].dna[5].toFixed(2)
-        if (lstAnimal[i].isPredator) {
-            name = "Predator"
-            attrPred = ' | predator_attract: ' + lstAnimal[i].dna[6].toFixed(2);
-            percepPred = ' | predator_percep: ' + lstAnimal[i].dna[7].toFixed(2)
+        var sexe = lstAnimal[i].dna[6]==0?"M":"F";
+        if (lstAnimal[i].dna[7]) {
+            name = "Predat"
+            attrPred = ' | predator_attract: ' + lstAnimal[i].dna[8].toFixed(2);
+            percepPred = ' | predator_percep: ' + lstAnimal[i].dna[9].toFixed(2)
         }
         consoledata += '[' + name + ' ' + (i+1) + ']' + 
-        ' life: ' + lstAnimal[i].health.toFixed(2) + 
+        ' sexe: ' + sexe +
+        ' | life: ' + lstAnimal[i].health.toFixed(2) + 
         ' | x: ' + lstAnimal[i].pos.x.toFixed(2) + 
         ' | y: ' + lstAnimal[i].pos.y.toFixed(2) + 
         ' | food_attract: ' + lstAnimal[i].dna[0].toFixed(2) +
@@ -219,7 +221,7 @@ function updateConsole() {
 }
 
 function setup() {
-    createAnimal(2);
+    createAnimal(1);
     createAliment(0)
     createPoison(0);
     setInterval(updateConsole, 1000);
@@ -266,10 +268,10 @@ function draw(now) {
     ctx.textAlign = "left";
     ctx.font = "25px Arial";
     ctx.fillStyle = "red";
-    ctx.fillText("Animal:"+lstAnimal.length, 10, 30, 300);
-    ctx.fillText("Food:"+food.length, 10, 60, 300);
-    ctx.fillText("Poison:"+poison.length, 10, 90, 300);
-    ctx.fillText("Time: "+Math.round(now/1000, 2) + "s",10, 120, 300);
+    ctx.fillText("Animal:"+lstAnimal.length, 10, 40, 300);
+    ctx.fillText("Food:"+food.length, 10, 70, 300);
+    ctx.fillText("Poison:"+poison.length, 10, 100, 300);
+    ctx.fillText("Time: "+Math.round(now/1000, 2) + "s",10, 130, 300);
 /*     ctx.fillText("Moyenne: "+Math.round(sum(lstAnimalPerGen)/lstAnimalPerGen.length, 2),10, 150, 300); */
     for (var i = lstAnimal.length - 1; i >= 0; i--) {
         let animal = lstAnimal[i];
@@ -283,7 +285,7 @@ function draw(now) {
         let newAnimal = animal.born(reprodNbr);
 
         if (newAnimal != null) {
-            if (newAnimal.isPredator) {
+            if (newAnimal.dna[7]) {
                 lstPredator.push(newAnimal);
                 lstAnimal.push(newAnimal);
             } else {

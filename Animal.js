@@ -12,6 +12,8 @@ function getRndInteger(min, max) {
     return Math.floor(Math.random() * (max - min) + min);
 }
 
+let bool = [true, false];
+
 export class Animal {
     constructor(x, y, maxspeed, maxforce, isPredator, dna) {
         this.pos = new Vector(x, y);
@@ -22,9 +24,7 @@ export class Animal {
         this.radius = 15;
         this.health = 1;
         this.dna = [];
-        this.isPredator = isPredator;
         this.indexTarget = null;
-        this.color = this.isPredator? "yellow" : "white"; 
         if (dna === undefined) {
             // La force pour la food
             this.dna[0] = getRnd(-2, 2);
@@ -35,14 +35,22 @@ export class Animal {
             // La perception pour le poison
             this.dna[3] = getRnd(0, 100);
             // La force pour les predateurs
-            this.dna[4] = getRnd(-0.25, 0);
+            this.dna[4] = getRnd(-2, 0);
             // La perception pour les prédateurs
             this.dna[5] = getRnd(25, 250)
-            if (this.isPredator) {
+            //Sexe
+            this.dna[6] = getRndInteger(0, 2)
+            // Predator or not
+            if (isPredator === undefined) {
+                this.dna[7] = bool[Math.floor(Math.random() * bool.length)];
+            } else {
+                this.dna[7] = isPredator;
+            }
+            if (this.dna[7]) {
                 // La force d'attraction du predateur
-                this.dna[6] = getRnd(2, 3);
+                this.dna[8] = getRnd(2, 3);
                 // La perception des predateurs pour la food
-                this.dna[7] = getRnd(100, 300);
+                this.dna[9] = getRnd(100, 300);
             }
         } else {
             this.dna[0] = dna[0];
@@ -51,11 +59,14 @@ export class Animal {
             this.dna[3] = dna[3];
             this.dna[4] = dna[4];
             this.dna[5] = dna[5];
-            if (this.isPredator) {
-                this.dna[6] = dna[6];
-                this.dna[7] = dna[7];
+            this.dna[6] = dna[6];
+            this.dna[7] = dna[7];
+            if (this.dna[7]) {
+                this.dna[8] = dna[8];
+                this.dna[9] = dna[9];
             }
         }
+        this.color = this.dna[7]==1? "red" : "yellow"; 
     }
 
     updateMaxSpeed(nbr) {
@@ -77,19 +88,26 @@ export class Animal {
         let dna_food_percept = this.dna[2];
         let dna_poison_percept = this.dna[3];
         let dna_predator_fear_percep = this.dna[5];
-        if (this.isPredator) {
-            var dna_proie_attract = this.dna[6]*20;
+        if (this.dna[7]) {
+            var dna_proie_attract = this.dna[8]*20;
             var newVelProie = this.vel.normalize().multiply(dna_proie_attract);
-            var dna_proie_percept = this.dna[7];
+            var dna_proie_percept = this.dna[9];
         }
 
         ctx.beginPath();
         ctx.fillStyle = this.color;
         ctx.arc(this.pos.x, this.pos.y, this.radius, 0, 2 * Math.PI);
+        ctx.lineWidth = 10;
+        if (this.dna[6] == 0) {
+            ctx.strokeStyle = 'blue';
+        } else {
+            ctx.strokeStyle = 'rgb(215, 119, 212)';
+        }
+        ctx.stroke();
         ctx.fill();
 
         if (debug) {
-            if (this.isPredator) {
+            if (this.dna[7]) {
                 ctx.lineWidth = 3;
                 ctx.beginPath();
                 ctx.moveTo(this.pos.x, this.pos.y);
@@ -178,13 +196,16 @@ export class Animal {
     }
 
     behaviors(predator, prois, food, poison, bonus, malus, bonusProis) {      
-        if (this.isPredator) {
+        if (this.dna[7]) {
             if (this.indexTarget == null) {
-                var proisSteer = this.eat(prois, bonusProis, this.dna[7]);
-                proisSteer = proisSteer.multiply(this.dna[6]);
+                var proisSteer = this.eat(prois, bonusProis, this.dna[9]);
+                proisSteer = proisSteer.multiply(this.dna[8]);
             } else {
                 var proisSteer = this.seek(this.indexTarget);
-                proisSteer = proisSteer.multiply(this.dna[6]);
+                proisSteer = proisSteer.multiply(this.dna[8]);
+                if (this.indexTarget.isDead()) {
+                    this.indexTarget = null;
+                }
             }
             this.applyForce(proisSteer);
         } else {
