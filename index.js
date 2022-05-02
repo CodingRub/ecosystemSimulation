@@ -4,21 +4,29 @@ import { Food, Poison } from './Aliment.js';
 const canvas = document.querySelector('canvas');
 const ctx = canvas.getContext('2d');
 
-canvas.width = 1000;
-canvas.height = 450;
-canvas.style.width = canvas.width + 'px';
-canvas.style.height = canvas.height + 'px';
+canvas.width = innerWidth;
+canvas.height = innerHeight;
 
 ctx.fillStyle = "black";
 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 let lstAnimal = [];
+let lstProie = [];
+let lstPredator = [];
 let food = [];
 let poison = [];
 
+let nbrGeneration = 0;
+let lstAnimalPerGen = [];
 let isStop = false;
 
+canvas.addEventListener('contextmenu', event => event.preventDefault());
+
 const title = document.querySelector(".title");
+const btnDash = document.querySelector(".arrow-dash");
+const dashboard = document.querySelector(".dashboard");
+const btnConsole = document.querySelector(".arrow-console");
+const consoleLog = document.querySelector(".console");
 const speedRange = document.querySelector(".speedRange");
 const pause = document.querySelector(".pause");
 const pauseElement = document.querySelector(".fas");
@@ -30,6 +38,13 @@ const poisonMalusRange = document.querySelector(".poisonMalusRange");
 const reprodRange = document.querySelector(".reprodRange");
 const debugCheck = document.querySelector(".debugCheck");
 
+btnDash.addEventListener('click', function() {
+    dashboard.classList.toggle("open");
+})
+
+btnConsole.addEventListener('click', function() {
+    consoleLog.classList.toggle("open2");
+})
 
 let speedNbr = speedRange.value;
 let forceNbr = forceRange.value;
@@ -67,8 +82,7 @@ pause.addEventListener('click', function() {
         isStop = true;
         pauseElement.classList.toggle('fa-play')
         pauseElement.classList.toggle('fa-pause')
-    }
-    console.log(isStop)
+    }   
 })
 
 speedRange.addEventListener('change', function() {
@@ -141,23 +155,39 @@ function createPoison(nbr, x, y) {
 
 function createAnimal(nbr) {
     for (var i = 0; i < nbr; i++) {
-        lstAnimal.push(new Animal(getRnd(0, canvas.width), getRnd(0, canvas.height), speedNbr, forceNbr));
+        var animal = new Animal(getRnd(0, canvas.width), getRnd(0, canvas.height), speedNbr, forceNbr, false)
+        if (animal.isPredator) {
+            lstPredator.push(animal);
+            lstAnimal.push(animal);
+        } else {
+            lstAnimal.push(animal);
+            lstProie.push(animal)
+        }
     }
 }
 
-canvas.addEventListener("click", add, false);
+function sum(lst) {
+    let total = 0;
+    for (var i = 0; i < lst.length; i++) {
+        total += lst[i];
+    }
+    return total
+}
+
+canvas.addEventListener("mouseup", add, false);
 
 function add(e) {
     let rect = canvas.getBoundingClientRect();
     let x = e.clientX - rect.left;
     let y = e.clientY - rect.top;
     if (e.button == 0) {
-        console.log("clique gauche: " + x, y)
-        lstAnimal.push(new Animal(x, y, speedNbr, forceNbr));
-    } else if (e.button == 1) {
-        poison.push(new Poison(x, y));
+        var animal = new Animal(x, y, speedNbr, forceNbr, true)
+        lstPredator.push(animal);
+        lstAnimal.push(animal);
     } else if (e.button == 2) {
-        food.push(new Food(x, y));
+        var animal = new Animal(x, y, speedNbr, forceNbr, false)
+        lstAnimal.push(animal);
+        lstProie.push(animal)
     }
 
 }
@@ -165,21 +195,31 @@ function add(e) {
 function updateConsole() {
     let consoledata = '';
     for (var i = 0; i < lstAnimal.length; i++) {
-        consoledata += '[Rabbit ' + (i+1) + ']' + 
+        var name = "Rabbit";
+        var attrPred = ' | proie_fear: ' + lstAnimal[i].dna[4].toFixed(2)
+        var percepPred = ' | proie_percep: ' + lstAnimal[i].dna[5].toFixed(2)
+        if (lstAnimal[i].isPredator) {
+            name = "Predator"
+            attrPred = ' | predator_attract: ' + lstAnimal[i].dna[6].toFixed(2);
+            percepPred = ' | predator_percep: ' + lstAnimal[i].dna[7].toFixed(2)
+        }
+        consoledata += '[' + name + ' ' + (i+1) + ']' + 
         ' life: ' + lstAnimal[i].health.toFixed(2) + 
         ' | x: ' + lstAnimal[i].pos.x.toFixed(2) + 
         ' | y: ' + lstAnimal[i].pos.y.toFixed(2) + 
         ' | food_attract: ' + lstAnimal[i].dna[0].toFixed(2) +
         ' | poison_attract: ' + lstAnimal[i].dna[1].toFixed(2) +
+        attrPred +
         ' | food_percep: ' + lstAnimal[i].dna[2].toFixed(2) +
         ' | poison_percep: ' + lstAnimal[i].dna[3].toFixed(2) +
+        percepPred +
         '\n';
     }
     output.innerHTML = '<h3>Console</h3>\n<pre>' + consoledata + '</pre>';
 }
 
 function setup() {
-    createAnimal(1);
+    createAnimal(2);
     createAliment(0)
     createPoison(0);
     setInterval(updateConsole, 1000);
@@ -215,6 +255,14 @@ function draw(now) {
         poisonElt.draw();
     }
 
+/*     console.log("============================")
+    console.log(now/1000)
+    console.log(now/1000%5)
+    if (now/1000 % 5 >= 0 && now/1000 % 5 < 0.02) {
+        lstAnimalPerGen.push(lstAnimal.length)
+        console.log(lstAnimalPerGen)
+    } */
+
     ctx.textAlign = "left";
     ctx.font = "25px Arial";
     ctx.fillStyle = "red";
@@ -222,10 +270,10 @@ function draw(now) {
     ctx.fillText("Food:"+food.length, 10, 60, 300);
     ctx.fillText("Poison:"+poison.length, 10, 90, 300);
     ctx.fillText("Time: "+Math.round(now/1000, 2) + "s",10, 120, 300);
-
+/*     ctx.fillText("Moyenne: "+Math.round(sum(lstAnimalPerGen)/lstAnimalPerGen.length, 2),10, 150, 300); */
     for (var i = lstAnimal.length - 1; i >= 0; i--) {
         let animal = lstAnimal[i];
-        animal.behaviors(food, poison, foodBonus, poisonMalus);
+        animal.behaviors(lstPredator, lstProie, food, poison, foodBonus, poisonMalus, 0.4);
         animal.bounceOffWalls();
         animal.updateMaxSpeed(speedNbr);
         animal.updateMaxForce(forceNbr);
@@ -235,7 +283,13 @@ function draw(now) {
         let newAnimal = animal.born(reprodNbr);
 
         if (newAnimal != null) {
-            lstAnimal.push(newAnimal);
+            if (newAnimal.isPredator) {
+                lstPredator.push(newAnimal);
+                lstAnimal.push(newAnimal);
+            } else {
+                lstAnimal.push(newAnimal);
+                lstProie.push(newAnimal);
+            }
         }
 
         if (animal.isDead()) {
